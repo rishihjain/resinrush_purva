@@ -1,0 +1,81 @@
+[
+  {
+    "id": 1779629639649,
+    "name": "p1",
+    "category": "coasters",
+    "desc": "jnvbq",
+    "details": {
+      "[]": ""
+    },
+    "images": [
+      "/uploads/1779629639642-270389232.png"
+    ],
+    "createdAt": "2026-05-24T13:33:59.649Z"
+  },
+  {
+    "id": 1779631452296,
+    "name": "demo",
+    "category": "trays",
+    "desc": "Decorative tray, multiple sizes available. Perfect for serving or display.",
+    "details": {
+      "[]": ""
+    },
+    "images": [
+      "/uploads/1779631452288-708284988.png",
+      "/uploads/1779631452293-881509077.png"
+    ],
+    "createdAt": "2026-05-24T14:04:12.296Z"
+  },
+  {
+    "id": 1779637615075,
+    "name": "p3",
+    "category": "jewelry",
+    "desc": "Handmade resin jewellery pieces. Hypoallergenic findings.",
+    "details": {
+      "uouweeof": ""
+    },
+    "images": [
+      "/uploads/1779637615030-289980183.png",
+      "/uploads/1779637615039-173702596.png",
+      "/uploads/1779637615048-585861439.png",
+      "/uploads/1779637615052-684491287.png",
+      "/uploads/1779637615058-594576792.png",
+      "/uploads/1779637615063-210872294.png",
+      "/uploads/1779637615067-185426773.png",
+      "/uploads/1779637615069-298408430.png"
+    ],
+    "createdAt": "2026-05-24T15:46:55.075Z"
+  },
+  {
+    "id": 1779644512466,
+    "name": "p4",
+    "category": "trays",
+    "desc": "Decorative tray, multiple sizes available. Perfect for serving or display.",
+    "details": {
+      "high gloss": ""
+    },
+    "images": [
+      "/uploads/1779644512447-596765773.png",
+      "/uploads/1779644512451-949090226.png",
+      "/uploads/1779644512458-506932011.png",
+      "/uploads/1779644512460-612584703.png"
+    ],
+    "createdAt": "2026-05-24T17:41:52.466Z"
+  },
+  {
+    "id": 1779648508968,
+    "name": "p3",
+    "category": "wall-art",
+    "desc": "Framed resin wall piece, ready to hang. Size varies by design.",
+    "details": {
+      "efvouq": ""
+    },
+    "images": [
+      "/uploads/1779648508948-517064999.png",
+      "/uploads/1779648508950-564524200.png",
+      "/uploads/1779648508962-746448001.png",
+      "/uploads/1779648508967-403935228.png"
+    ],
+    "createdAt": "2026-05-24T18:48:28.968Z"
+  }
+]
