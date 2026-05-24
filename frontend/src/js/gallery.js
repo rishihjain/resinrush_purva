@@ -49,11 +49,10 @@ function renderGallery(filter) {
     item.onclick = () => openModal(product.id);
     item.onkeydown = e => { if (e.key === 'Enter') openModal(product.id); };
 
-    const imgHeight = [220, 280, 260, 300, 240, 260][i % 6];
 
     item.innerHTML = `
       <div class="product-card">
-        <div class="product-card-img" style="height:${imgHeight}px">
+        <div class="product-card-img">
           <img src="${product.images[0]}" alt="${product.name}" loading="lazy" />
           <div class="product-card-overlay">
             <div class="product-card-overlay-content">
