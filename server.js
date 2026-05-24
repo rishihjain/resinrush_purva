@@ -265,6 +265,11 @@ app.get('/api/contacts', async (req, res) => {
   }
 });
 
+// Explicitly serve admin.html before the catch-all
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(rootDir, 'admin.html'));
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(rootDir, 'index.html'));
 });
