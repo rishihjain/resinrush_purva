@@ -1,12 +1,12 @@
-const productForm = document.getElementById('product-form');
-const productsTableBody = document.querySelector('#products-table tbody');
-const productMessage = document.getElementById('product-message');
-const refreshProductsBtn = document.getElementById('refresh-products-btn');
-const cancelEditBtn = document.getElementById('cancel-edit-btn');
+var productForm = document.getElementById('product-form');
+var productsTableBody = document.querySelector('#products-table tbody');
+var productMessage = document.getElementById('product-message');
+var refreshProductsBtn = document.getElementById('refresh-products-btn');
+var cancelEditBtn = document.getElementById('cancel-edit-btn');
 
-let editProductId = null;
-let currentImageFile = null;
-let selectedFiles = [];
+var editProductId = null;
+var currentImageFile = null;
+var selectedFiles = [];
 
 function resetForm() {
   editProductId = null;
@@ -116,8 +116,8 @@ productForm.addEventListener('submit', async event => {
   }
 });
 
-const categorySelect = document.getElementById('product-category');
-const defaultDescriptions = {
+var categorySelect = document.getElementById('product-category');
+var defaultDescriptions = {
   'coasters': 'Hand-poured coaster set. Size: 10cm diameter. Finish: High gloss.',
   'trays': 'Decorative tray, multiple sizes available. Perfect for serving or display.',
   'wall-art': 'Framed resin wall piece, ready to hang. Size varies by design.',
@@ -126,7 +126,7 @@ const defaultDescriptions = {
   'custom': 'Custom piece — provide details about size, colours and style you want.'
 };
 
-let lastAutoFilled = null;
+var lastAutoFilled = null;
 if (categorySelect) {
   categorySelect.addEventListener('change', (e) => {
     const val = e.target.value;
@@ -139,10 +139,10 @@ if (categorySelect) {
   });
 }
 
-const imageInput = document.getElementById('product-images');
-const imagePreviewContainer = document.getElementById('image-preview-container');
-const imagePreviewPanel = document.getElementById('image-preview-panel');
-const imagePreviewInfo = document.getElementById('image-preview-info');
+var imageInput = document.getElementById('product-images');
+var imagePreviewContainer = document.getElementById('image-preview-container');
+var imagePreviewPanel = document.getElementById('image-preview-panel');
+var imagePreviewInfo = document.getElementById('image-preview-info');
 
 if (imageInput) {
   imageInput.addEventListener('change', () => {

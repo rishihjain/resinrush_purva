@@ -2,7 +2,7 @@
    GALLERY.JS — Masonry Grid, Filters, Modal
    ============================================ */
 
-let PRODUCTS = [];
+var PRODUCTS = [];
 
 async function loadProducts() {
   try {
@@ -18,9 +18,9 @@ async function loadProducts() {
   }
 }
 
-let activeFilter = 'all';
-let currentProductId = null;
-let currentSlide = 0;
+var activeFilter = 'all';
+var currentProductId = null;
+var currentSlide = 0;
 
 function runGalleryInit() {
   initFilters();
