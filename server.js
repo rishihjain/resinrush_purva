@@ -49,11 +49,15 @@ async function initDB() {
   
   // Fallback to local files
   console.log('Using local JSON storage');
-  await fs.mkdir(dataDir, { recursive: true });
-  await fs.mkdir(uploadsDir, { recursive: true });
-  for (const file of [ordersPath, contactsPath, productsPath]) {
-    try { await fs.access(file); } 
-    catch { await fs.writeFile(file, '[]', 'utf8'); }
+  try {
+    await fs.mkdir(dataDir, { recursive: true });
+    await fs.mkdir(uploadsDir, { recursive: true });
+    for (const file of [ordersPath, contactsPath, productsPath]) {
+      try { await fs.access(file); } 
+      catch { await fs.writeFile(file, '[]', 'utf8'); }
+    }
+  } catch (err) {
+    console.error('Failed to initialize local data files (expected on Vercel if MONGODB_URI is missing):', err.message);
   }
 }
 
@@ -62,14 +66,17 @@ async function readData(collectionName) {
     return await db.collection(collectionName).find({}).toArray();
   }
   const file = collectionName === 'products' ? productsPath : collectionName === 'orders' ? ordersPath : contactsPath;
-  const raw = await fs.readFile(file, 'utf8');
-  return JSON.parse(raw || '[]');
+  try {
+    const raw = await fs.readFile(file, 'utf8');
+    return JSON.parse(raw || '[]');
+  } catch (err) {
+    if (err.code === 'ENOENT') return [];
+    throw new Error('Database not configured. Please add MONGODB_URI in Vercel.');
+  }
 }
 
 async function writeData(collectionName, data) {
   if (db) {
-    // For MongoDB, we just insert/update individually in the route handlers, 
-    // but for simplicity to match local JSON behavior:
     await db.collection(collectionName).deleteMany({});
     if (data.length > 0) {
       await db.collection(collectionName).insertMany(data);
@@ -77,7 +84,11 @@ async function writeData(collectionName, data) {
     return;
   }
   const file = collectionName === 'products' ? productsPath : collectionName === 'orders' ? ordersPath : contactsPath;
-  await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf8');
+  try {
+    await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    throw new Error('Database not configured. Please add MONGODB_URI in Vercel.');
+  }
 }
 
 function parseDetails(details) {
@@ -108,7 +119,7 @@ app.post('/api/orders', async (req, res) => {
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi ResinRush! I am ${order.name}. I would like a custom ${order.type}. Details: ${order.notes}`)}`;
     return res.json({ order, whatsappUrl, instagramUrl: instagramProfile });
   } catch (error) {
-    return res.status(500).json({ error: 'Unable to save order' });
+    return res.status(500).json({ error: error.message || 'Unable to save order' });
   }
 });
 
@@ -123,7 +134,7 @@ app.post('/api/contact', async (req, res) => {
     await writeData('contacts', contacts);
     return res.json({ contact, message: 'Saved' });
   } catch (error) {
-    return res.status(500).json({ error: 'Unable to save' });
+    return res.status(500).json({ error: error.message || 'Unable to save' });
   }
 });
 
@@ -132,7 +143,7 @@ app.get('/api/products', async (req, res) => {
     const products = await readData('products');
     return res.json({ products });
   } catch (error) {
-    return res.status(500).json({ error: 'Unable to read products' });
+    return res.status(500).json({ error: error.message || 'Unable to read products' });
   }
 });
 
@@ -143,7 +154,7 @@ app.get('/api/products/:id', async (req, res) => {
     if (!product) return res.status(404).json({ error: 'Not found' });
     return res.json({ product });
   } catch (error) {
-    return res.status(500).json({ error: 'Error' });
+    return res.status(500).json({ error: error.message || 'Error' });
   }
 });
 
@@ -170,7 +181,7 @@ app.post('/api/products', async (req, res) => {
     await writeData('products', products);
     return res.json({ product });
   } catch (error) {
-    return res.status(500).json({ error: 'Save failed' });
+    return res.status(500).json({ error: error.message || 'Save failed' });
   }
 });
 
@@ -195,7 +206,7 @@ app.put('/api/products/:id', async (req, res) => {
     await writeData('products', products);
     return res.json({ product });
   } catch (error) {
-    return res.status(500).json({ error: 'Update failed' });
+    return res.status(500).json({ error: error.message || 'Update failed' });
   }
 });
 
@@ -209,7 +220,7 @@ app.delete('/api/products/:id', async (req, res) => {
     await writeData('products', products);
     return res.json({ success: true });
   } catch (error) {
-    return res.status(500).json({ error: 'Delete failed' });
+    return res.status(500).json({ error: error.message || 'Delete failed' });
   }
 });
 
@@ -218,7 +229,7 @@ app.get('/api/orders', async (req, res) => {
     const orders = await readData('orders');
     return res.json({ orders });
   } catch (error) {
-    return res.status(500).json({ error: 'Error' });
+    return res.status(500).json({ error: error.message || 'Error' });
   }
 });
 
@@ -227,7 +238,7 @@ app.get('/api/contacts', async (req, res) => {
     const contacts = await readData('contacts');
     return res.json({ contacts });
   } catch (error) {
-    return res.status(500).json({ error: 'Error' });
+    return res.status(500).json({ error: error.message || 'Error' });
   }
 });
 
