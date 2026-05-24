@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs/promises');
 const fsSync = require('fs');
 const { MongoClient } = require('mongodb');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +18,16 @@ const ordersPath = path.join(dataDir, 'orders.json');
 const contactsPath = path.join(dataDir, 'contacts.json');
 const productsPath = path.join(dataDir, 'products.json');
 const uploadsDir = path.join(__dirname, 'uploads');
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
 const whatsappNumber = '918975741553';
 const instagramProfile = 'https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3';
 
@@ -151,8 +162,14 @@ app.get('/api/products/:id', async (req, res) => {
   }
 });
 
-app.post('/api/products', async (req, res) => {
-  const { name, category, desc, details, images } = req.body || {};
+// app.post('/api/products', async (req, res) => {
+app.post('/api/products', upload.array('images', 10), async (req, res) => {
+//   const { name, category, desc, details, images } = req.body || {};
+const { name, category, desc, details } = req.body || {};
+
+const images = req.files?.map(
+  file => `/uploads/${file.filename}`
+) || [];
   if (!name || !category || !images || !images.length) {
     return res.status(400).json({ error: 'Name, category and images are required.' });
   }
@@ -177,7 +194,11 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-app.put('/api/products/:id', async (req, res) => {
+// app.put('/api/products/:id', async (req, res) => {
+app.put('/api/products/:id', upload.array('images', 10), async (req, res) => {
+    const images = req.files?.map(
+  file => `/uploads/${file.filename}`
+) || [];
   const id = parseInt(req.params.id, 10);
   const { name, category, desc, details, images } = req.body || {};
   
