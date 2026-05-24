@@ -1,0 +1,853 @@
+import React, { useEffect, useState } from 'react';
+import uploadToCloudinary from '../lib/cloudinary';
+
+export default function Home() {
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  useEffect(() => {
+    const scripts = [
+      '/js/main.js',
+      '/js/gallery.js',
+      '/js/form.js'
+    ];
+    scripts.forEach(src => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = false;
+      document.body.appendChild(script);
+    });
+    return () => {
+      scripts.forEach(src => {
+        const script = document.querySelector(`script[src="${src}"]`);
+        if (script) document.body.removeChild(script);
+      });
+    };
+  }, []);
+
+  const handleFileChange = (e) => {
+    setUploadError('');
+    const f = e.target.files && e.target.files[0];
+    if (f) setFile(f);
+    else setFile(null);
+  };
+
+  const handleUpload = async () => {
+    if (!file) return setUploadError('Please choose a file to upload');
+    setUploading(true);
+    setUploadError('');
+    try {
+      const data = await uploadToCloudinary(file);
+      setUploadedUrl(data.secure_url || data.url || '');
+    } catch (err) {
+      setUploadError(err.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSendWhatsapp = () => {
+    const name = document.getElementById('order-name')?.value || '';
+    const phone = document.getElementById('order-phone')?.value || '';
+    const type = document.getElementById('order-type')?.value || '';
+    const notes = document.getElementById('order-notes')?.value || '';
+    let message = `Name: ${name}\nPhone: ${phone}\nCategory: ${type}\nDetails: ${notes}`;
+    if (uploadedUrl) message += `\nImage: ${uploadedUrl}`;
+    const waNumber = '918975741553';
+    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+  };
+
+  return (
+    <>
+      
+
+  {/*  Custom Cursor  */}
+  <div className="cursor-dot" id="cursor-dot"></div>
+  <div className="cursor-ring" id="cursor-ring"></div>
+
+  {/*  =============================================
+       NAVIGATION
+       =============================================  */}
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <div className="container">
+      <div className="nav-inner">
+        <a href="#hero" className="nav-logo" aria-label="ResinRush — Home">
+          <img src="assets/images/logo.jpg" alt="ResinRush Logo" style={{ height: '40px', borderRadius: '6px', marginRight: '12px' }} />
+          ResinRush<span>✦</span>
+        </a>
+
+        <ul className="nav-links" role="list">
+          <li><a href="#gallery" className="nav-link" data-section="gallery">Explore</a></li>
+          <li><a href="#custom-order" className="nav-link" data-section="custom-order">Custom Order</a></li>
+          <li><a href="#about" className="nav-link" data-section="about">About</a></li>
+          <li><a href="#testimonials" className="nav-link" data-section="testimonials">Reviews</a></li>
+          <li><a href="#faq" className="nav-link" data-section="faq">FAQ</a></li>
+          <li><a href="#contact" className="nav-link" data-section="contact">Contact</a></li>
+        </ul>
+
+        <div className="nav-actions">
+          <button className="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode">
+            <div className="theme-icons"><span>🌙</span><span>☀️</span></div>
+          </button>
+          <a href="https://wa.me/918975741553" target="_blank" rel="noopener" className="btn btn-primary btn-sm" aria-label="Contact on WhatsApp">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            WhatsApp
+          </a>
+          <button className="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  {/*  Mobile Menu  */}
+  <div className="mobile-menu" id="mobile-menu" role="dialog" aria-label="Mobile navigation">
+    <ul role="list">
+      <li><a href="#gallery" className="nav-link">Explore</a></li>
+      <li><a href="#custom-order" className="nav-link">Custom Order</a></li>
+      <li><a href="#about" className="nav-link">About</a></li>
+      <li><a href="#testimonials" className="nav-link">Reviews</a></li>
+      <li><a href="#faq" className="nav-link">FAQ</a></li>
+      <li><a href="#contact" className="nav-link">Contact</a></li>
+    </ul>
+    <a href="https://wa.me/918975741553" target="_blank" rel="noopener" className="btn btn-primary">Chat on WhatsApp</a>
+  </div>
+
+  {/*  =============================================
+       HERO SECTION
+       =============================================  */}
+  <section id="hero">
+    <div className="hero-bg"></div>
+    <div className="hero-blob hero-blob-1"></div>
+    <div className="hero-blob hero-blob-2"></div>
+    <div className="hero-blob hero-blob-3"></div>
+    <div className="particles-container" aria-hidden="true"></div>
+
+    <div className="hero-content">
+      <div className="container">
+        <div className="hero-inner">
+          <div className="hero-text">
+            <div className="hero-badge">✦ Handcrafted Luxury Resin Art</div>
+            <h1 className="hero-title">
+              Where <em>Art</em> Meets<br />Liquid <span className="text-gradient">Gold</span>
+            </h1>
+            <p className="hero-desc">
+              Each piece is hand-poured, one-of-a-kind, and made with love. 
+              From statement frames to everyday luxury — discover resin creations 
+              that turn your space into a gallery.
+            </p>
+            <div className="hero-cta">
+              <a href="#gallery" className="btn btn-primary btn-lg" id="hero-explore-btn">
+                ✦ Explore Collection
+              </a>
+              <a href="#custom-order" className="btn btn-outline btn-lg" id="hero-custom-btn">
+                Custom Order
+              </a>
+            </div>
+            <div className="hero-stats">
+              <div>
+                <div className="hero-stat-num" data-count="200" data-suffix="+">0+</div>
+                <div className="hero-stat-label">Pieces Crafted</div>
+              </div>
+              <div className="hero-stat-divider"></div>
+              <div>
+                <div className="hero-stat-num" data-count="150" data-suffix="+">0+</div>
+                <div className="hero-stat-label">Happy Clients</div>
+              </div>
+              <div className="hero-stat-divider"></div>
+              <div>
+                <div className="hero-stat-num" data-count="4" data-suffix="">0</div>
+                <div className="hero-stat-label">Years Experience</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="hero-visual">
+            <div className="hero-deco-card hero-deco-card-1">
+              ✦ Every piece is unique
+            </div>
+            <div className="hero-img-wrap">
+              <img src="assets/images/hero.png" alt="Collection of luxury handcrafted resin art pieces including coasters and trays" />
+              <div className="hero-img-badge">
+                <div className="hero-img-badge-icon">🎨</div>
+                <div className="hero-img-badge-text">
+                  <strong>Pure Handcraft</strong>
+                  Poured, sanded & polished by hand
+                </div>
+              </div>
+            </div>
+            <div className="hero-deco-card hero-deco-card-2">
+              🌟 Custom orders welcome
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/*  =============================================
+       TICKER
+       =============================================  */}
+  <div className="ticker-section" aria-hidden="true">
+    <div className="ticker-track">
+      <div className="ticker-item"><span className="ticker-dot"></span>Handcrafted with Love</div>
+      <div className="ticker-item"><span className="ticker-dot"></span>Ocean &amp; Geode Collections</div>
+      <div className="ticker-item"><span className="ticker-dot"></span>Ships Pan India</div>
+      <div className="ticker-item"><span className="ticker-dot"></span>100% Custom Orders</div>
+      <div className="ticker-item"><span className="ticker-dot"></span>Gold &amp; Rose-Gold Accents</div>
+      <div className="ticker-item"><span className="ticker-dot"></span>Gift-Ready Packaging</div>
+      <div className="ticker-item"><span className="ticker-dot"></span>Wedding Favours</div>
+      <div className="ticker-item"><span className="ticker-dot"></span>Unique, Not Mass-Produced</div>
+    </div>
+  </div>
+
+  {/*  =============================================
+       GALLERY / EXPLORE
+       =============================================  */}
+  <section id="gallery">
+    <div className="container">
+      <div className="section-header">
+        <p className="section-label reveal">Explore Collection</p>
+        <h2 className="section-title reveal" data-delay="100">
+          Pieces That Tell a <span className="text-gradient">Story</span>
+        </h2>
+        <p className="section-subtitle reveal" data-delay="200">
+          Each creation is born from hours of careful layering, mixing and pouring — 
+          making every piece completely one-of-a-kind.
+        </p>
+      </div>
+
+      {/*  Category Filters  */}
+      <div className="filter-tabs reveal" role="tablist" aria-label="Product categories">
+        <button className="filter-tab active" data-filter="all" role="tab" aria-selected="true" id="filter-all">All Pieces</button>
+        <button className="filter-tab" data-filter="coasters" role="tab" aria-selected="false" id="filter-coasters">Coasters</button>
+        <button className="filter-tab" data-filter="trays" role="tab" aria-selected="false" id="filter-trays">Trays</button>
+        <button className="filter-tab" data-filter="wall-art" role="tab" aria-selected="false" id="filter-wall-art">Frames</button>
+        <button className="filter-tab" data-filter="keychains" role="tab" aria-selected="false" id="filter-keychains">Keychains</button>
+        <button className="filter-tab" data-filter="jewelry" role="tab" aria-selected="false" id="filter-jewelry">Jewelery</button>
+        <button className="filter-tab" data-filter="custom" role="tab" aria-selected="false" id="filter-custom">Custom Pieces</button>
+      </div>
+
+      {/*  Masonry Grid — rendered by gallery.js  */}
+      <div className="masonry-grid" id="masonry-grid" aria-label="Product gallery"></div>
+    </div>
+  </section>
+
+  {/*  =============================================
+       PRODUCT MODAL
+       =============================================  */}
+  <div className="modal-overlay" id="product-modal" role="dialog" aria-modal="true" aria-label="Product details">
+    <div className="modal-box">
+      <button className="modal-close" id="modal-close" aria-label="Close product details">✕</button>
+
+      {/*  Carousel  */}
+      <div className="modal-carousel">
+        <div className="carousel-track" id="carousel-track"></div>
+        <button className="carousel-btn carousel-prev" id="carousel-prev" aria-label="Previous image">‹</button>
+        <button className="carousel-btn carousel-next" id="carousel-next" aria-label="Next image">›</button>
+        <div className="carousel-dots" id="carousel-dots"></div>
+      </div>
+
+      {/*  Info  */}
+      <div className="modal-info">
+        <div>
+          <div className="modal-category" id="modal-category"></div>
+          <h3 className="modal-name" id="modal-name"></h3>
+        </div>
+        <div className="modal-price" id="modal-price"></div>
+        <p className="modal-desc" id="modal-desc"></p>
+        <div className="modal-divider"></div>
+        <div className="modal-details" id="modal-details"></div>
+        <div className="modal-divider"></div>
+        <div className="modal-cta">
+          <a href="" id="modal-wa-btn" target="_blank" rel="noopener" className="btn btn-whatsapp">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            Contact on WhatsApp
+          </a>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div className="divider-line"></div>
+
+  {/*  =============================================
+       CUSTOM ORDER SECTION
+       =============================================  */}
+  <section id="custom-order">
+    <div className="container">
+      <div className="custom-order-wrap">
+        {/*  Left visual  */}
+        <div className="custom-order-art reveal-left">
+          <div className="custom-order-img">
+            <img src="assets/images/product_tray.png" alt="Custom resin art tray example" />
+          </div>
+          <div className="custom-order-features">
+            <div className="feature-pill">
+              <span className="feature-pill-icon">✦</span> Fully personalised
+            </div>
+            <div className="feature-pill">
+              <span className="feature-pill-icon">📦</span> Gift-ready packaging
+            </div>
+            <div className="feature-pill">
+              <span className="feature-pill-icon">⚡</span> 7–15 day turnaround
+            </div>
+            <div className="feature-pill">
+              <span className="feature-pill-icon">🚚</span> Ships Pan India
+            </div>
+          </div>
+        </div>
+
+        {/*  Right form  */}
+        <div className="reveal-right">
+          <p className="section-label">Bespoke Creations</p>
+          <h2 className="section-title">Design Your <span className="text-gradient">Dream Piece</span></h2>
+          <p className="section-subtitle" style={{ marginBottom: '32px' }}>
+            Tell me what you envision — colours, style, occasion — and I'll bring it to life in resin.
+            Custom pieces start with a free consultation.
+          </p>
+
+          {/*  Order Form  */}
+          <form className="order-form" id="order-form" novalidate>
+            <div className="form-group">
+              <label className="form-label" htmlFor="order-name">Your Name *</label>
+              <input className="form-input" type="text" id="order-name" name="name" placeholder="Priya Sharma" required />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="order-phone">WhatsApp Number *</label>
+              <input className="form-input" type="tel" id="order-phone" name="phone" placeholder="+91 89757 41553" required />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="order-type">Category *</label>
+              <select className="form-select" id="order-type" name="type" required>
+                <option value="" disabled selected>Select a category</option>
+                <option value="Coasters">Coasters</option>
+                <option value="Trays">Trays</option>
+                <option value="Frames">Frames</option>
+                <option value="Keychains">Keychains</option>
+                <option value="Jewelry">Jewelry</option>
+                <option value="Gift Set">Gift Set</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="order-notes">Additional Details *</label>
+              <textarea className="form-textarea" id="order-notes" name="notes" placeholder="Tell me your vision — size, colours, occasion, reference details..." required></textarea>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="order-image">Reference Image (optional)</label>
+              <input className="form-input" type="file" id="order-image" name="image" accept="image/*" onChange={handleFileChange} />
+              <div style={{ marginTop: '8px' }}>
+                <button type="button" className="btn btn-secondary" onClick={handleUpload} disabled={!file || uploading}>
+                  {uploading ? 'Uploading…' : 'Upload Image'}
+                </button>
+                {uploadError && <div className="form-error" style={{ color: 'var(--danger)', marginTop: '8px' }}>{uploadError}</div>}
+                {uploadedUrl && (
+                  <div className="upload-preview" style={{ marginTop: '12px' }}>
+                    <img src={uploadedUrl} alt="Uploaded preview" style={{ maxWidth: '160px', borderRadius: '6px' }} />
+                  </div>
+                )}
+              </div>
+              <input type="hidden" id="uploaded-image-url" value={uploadedUrl || ''} />
+            </div>
+            <div className="form-submit order-cta">
+              <button type="button" className="btn btn-primary btn-lg" id="order-whatsapp-btn" onClick={handleSendWhatsapp}>
+                ✦ Send Enquiry
+              </button>
+            </div>
+          </form>
+
+          {/*  Success State  */}
+          <div className="form-success" id="order-success">
+            <div className="form-success-icon">🎨</div>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.8rem', marginBottom: '8px' }}>Inquiry Received!</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Thank you! I'll get back to you within 24 hours to discuss your custom piece.</p>
+            <a href="https://wa.me/918975741553" target="_blank" rel="noopener" className="btn btn-whatsapp" id="order-wa-fallback">
+              Chat on WhatsApp to speed things up →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div className="divider-line"></div>
+
+  {/*  =============================================
+       ABOUT THE ARTIST
+       =============================================  */}
+  <section id="about">
+    <div className="container">
+      <div className="about-wrap">
+        <div className="about-visual">
+          <div className="about-gold-blob"></div>
+          <div className="about-img-main reveal-scale">
+            <img src="assets/images/artist.png" alt="Purva — the artist behind ResinRush" />
+          </div>
+          <div className="about-img-accent">
+            <img src="assets/images/product_coasters.png" alt="Sample resin coaster" />
+          </div>
+        </div>
+
+        <div className="about-text">
+          <p className="section-label reveal">The Artist</p>
+          <h2 className="section-title reveal" data-delay="100">
+            Hello, I'm <span className="text-gradient">Purva</span>
+          </h2>
+          <p className="section-subtitle reveal" data-delay="200" style={{ maxWidth: 'none', marginBottom: '16px' }}>
+            I founded ResinRush after falling in love with resin four years ago, completely enchanted by the way colours bloom and swirl through liquid epoxy — like capturing the ocean, a galaxy, or a sunset in solid form.
+          </p>
+          <p className="section-subtitle reveal" data-delay="300" style={{ maxWidth: 'none', marginBottom: '16px' }}>
+            Every piece I create is poured, mixed, sanded, and polished entirely by hand in my home studio. I believe art should be functional, beautiful, and deeply personal — which is why I love making custom orders most.
+          </p>
+          <p className="section-subtitle reveal" data-delay="400" style={{ maxWidth: 'none', marginBottom: '24px' }}>
+            Based in India, I ship lovingly packaged creations all over the country. Whether it's a coaster for your morning chai ritual or a statement frame piece for your living room — I pour my heart into every commission.
+          </p>
+
+          <div className="reveal" data-delay="500">
+            <a href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" className="btn btn-instagram">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              Follow @resin_.rush
+            </a>
+          </div>
+
+          <div className="about-stats reveal" data-delay="600">
+            <div className="stat-card">
+              <span className="stat-card-num" data-count="200" data-suffix="+">0+</span>
+              <span className="stat-card-label">Pieces Made</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-card-num" data-count="150" data-suffix="+">0+</span>
+              <span className="stat-card-label">Happy Clients</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-card-num" data-count="4" data-suffix=" yrs">0</span>
+              <span className="stat-card-label">Experience</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div className="divider-line"></div>
+
+  {/*  =============================================
+       TESTIMONIALS
+       =============================================  */}
+  <section id="testimonials">
+    <div className="container">
+      <div className="section-header">
+        <p className="section-label reveal">Happy Customers</p>
+        <h2 className="section-title reveal" data-delay="100">
+          Words of <span className="text-gradient">Love</span>
+        </h2>
+        <p className="section-subtitle reveal" data-delay="200">
+          Nothing makes me happier than seeing my art bring joy to someone's home or heart.
+        </p>
+      </div>
+    </div>
+
+    <div className="testimonials-track-wrap">
+      <div className="testimonials-track" id="testimonials-track">
+        <div className="testimonial-card">
+          <div className="testimonial-stars">★★★★★</div>
+          <p className="testimonial-text">"I ordered a custom tray for my mom's birthday and it was absolutely breathtaking. The rose gold geode design was exactly what I described — Purva truly has a gift."</p>
+          <div className="testimonial-author">
+            <div className="testimonial-avatar">🌸</div>
+            <div>
+              <div className="testimonial-name">Ananya M.</div>
+              <div className="testimonial-location">Mumbai</div>
+            </div>
+          </div>
+        </div>
+        <div className="testimonial-card">
+          <div className="testimonial-stars">★★★★★</div>
+          <p className="testimonial-text">"The ocean blue coaster set is the most beautiful thing on my coffee table. Every guest asks where I got it. The packaging was also stunning — felt like opening a luxury gift!"</p>
+          <div className="testimonial-author">
+            <div className="testimonial-avatar">💙</div>
+            <div>
+              <div className="testimonial-name">Ritu K.</div>
+              <div className="testimonial-location">Nashik</div>
+            </div>
+          </div>
+        </div>
+        <div className="testimonial-card">
+          <div className="testimonial-stars">★★★★★</div>
+          <p className="testimonial-text">"Got keychains made as bridesmaid gifts. All 8 girls were obsessed! Purva even took a reference picture from our chat and matched the colour palette perfectly."</p>
+          <div className="testimonial-author">
+            <div className="testimonial-avatar">💍</div>
+            <div>
+              <div className="testimonial-name">Diya P.</div>
+              <div className="testimonial-location">Jalgaon</div>
+            </div>
+          </div>
+        </div>
+        <div className="testimonial-card">
+          <div className="testimonial-stars">★★★★★</div>
+          <p className="testimonial-text">"Ordered the galaxy wall panel and it completely transformed my home office. The colours are so rich and deep in person — photos don't do it justice."</p>
+          <div className="testimonial-author">
+            <div className="testimonial-avatar">🌌</div>
+            <div>
+              <div className="testimonial-name">Riya R.</div>
+              <div className="testimonial-location">Nashik</div>
+            </div>
+          </div>
+        </div>
+        <div className="testimonial-card">
+          <div className="testimonial-stars">★★★★★</div>
+          <p className="testimonial-text">"Super responsive on WhatsApp, sent me progress pictures, and delivered way ahead of schedule. The final piece was even more stunning than I expected. 10/10!"</p>
+          <div className="testimonial-author">
+            <div className="testimonial-avatar">🌟</div>
+            <div>
+              <div className="testimonial-name">Kavya T.</div>
+              <div className="testimonial-location">Hyderabad</div>
+            </div>
+          </div>
+        </div>
+        <div className="testimonial-card">
+          <div className="testimonial-stars">★★★★★</div>
+          <p className="testimonial-text">"I've now ordered three times! The quality just gets better each time. My dining table coasters are my pride and joy — thick, heavy, and absolutely gorgeous."</p>
+          <div className="testimonial-author">
+            <div className="testimonial-avatar">✨</div>
+            <div>
+              <div className="testimonial-name">Divya S.</div>
+              <div className="testimonial-location">Pune</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div className="divider-line"></div>
+
+  {/*  =============================================
+       FAQ SECTION
+       =============================================  */}
+  <section id="faq">
+    <div className="container">
+      <div className="section-header">
+        <p className="section-label reveal">Got Questions?</p>
+        <h2 className="section-title reveal" data-delay="100">
+          Frequently <span className="text-gradient">Asked</span>
+        </h2>
+      </div>
+
+      <div className="faq-list">
+        <div className="faq-item reveal">
+          <div className="faq-question">
+            <span>How long does a custom order take?</span>
+            <span className="faq-icon">+</span>
+          </div>
+          <div className="faq-answer">
+            <p>Custom orders typically take 7–15 working days depending on complexity. Larger pieces like frames may take up to 3 weeks. I always share progress photos during the curing process, and you'll receive shipping updates every step of the way.</p>
+          </div>
+        </div>
+
+        <div className="faq-item reveal" data-delay="100">
+          <div className="faq-question">
+            <span>Do you ship across India?</span>
+            <span className="faq-icon">+</span>
+          </div>
+          <div className="faq-answer">
+            <p>Yes! I ship to all major cities and towns across India. Pieces are carefully bubble-wrapped and boxed with custom tissue paper to ensure safe arrival. Shipping typically takes 3–7 days depending on your location. Tracking is provided for all orders.</p>
+          </div>
+        </div>
+
+        <div className="faq-item reveal" data-delay="200">
+          <div className="faq-question">
+            <span>How do I care for my resin pieces?</span>
+            <span className="faq-icon">+</span>
+          </div>
+          <div className="faq-answer">
+            <p>Resin art is quite durable! For coasters and trays: wipe with a damp cloth, avoid harsh chemicals, and don't place boiling-hot cups directly on them — use a cloth coaster underneath. For frames: dust gently with a microfibre cloth. Avoid direct prolonged sunlight to maintain colour vibrancy.</p>
+          </div>
+        </div>
+
+        <div className="faq-item reveal" data-delay="300">
+          <div className="faq-question">
+            <span>Can I request a specific colour theme or design?</span>
+            <span className="faq-icon">+</span>
+          </div>
+          <div className="faq-answer">
+            <p>Absolutely — that's what I love most! You can share colour swatches, Instagram pictures, Pinterest boards, or simply describe your vision. I offer a free 15-minute WhatsApp consultation before every custom order to ensure we're perfectly aligned.</p>
+          </div>
+        </div>
+
+        <div className="faq-item reveal" data-delay="400">
+          <div className="faq-question">
+            <span>What payment methods do you accept?</span>
+            <span className="faq-icon">+</span>
+          </div>
+          <div className="faq-answer">
+            <p>I accept UPI (GPay, PhonePe, Paytm), NEFT/IMPS bank transfer, and Razorpay for card payments. For custom orders, a 50% advance is required to begin work, with the balance due before shipping.</p>
+          </div>
+        </div>
+
+        <div className="faq-item reveal" data-delay="500">
+          <div className="faq-question">
+            <span>Are your products safe? Do they have any smell?</span>
+            <span className="faq-icon">+</span>
+          </div>
+          <div className="faq-answer">
+            <p>All my pieces are made with professional-grade, food-safe epoxy resin that is fully cured before shipping. Once cured, resin is completely odourless, non-toxic, and safe to use as coasters or serving trays for dry foods. I do not recommend using resin pieces to serve hot liquids directly.</p>
+          </div>
+        </div>
+
+        <div className="faq-item reveal" data-delay="600">
+          <div className="faq-question">
+            <span>Do you do bulk or corporate orders?</span>
+            <span className="faq-icon">+</span>
+          </div>
+          <div className="faq-answer">
+            <p>Yes! I love doing bulk orders for corporate gifting, wedding favours, and event giveaways. Minimum quantity is typically 20 pieces for bulk pricing. Please WhatsApp me with your requirements and timeline for a custom quote.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div className="divider-line"></div>
+
+  {/*  =============================================
+       INSTAGRAM FEED SECTION
+       =============================================  */}
+  <section id="instagram">
+    <div className="container">
+      <div className="section-header">
+        <p className="section-label reveal">Stay Connected</p>
+        <h2 className="section-title reveal" data-delay="100">
+          Follow Along on <span className="text-gradient">Instagram</span>
+        </h2>
+        <p className="section-subtitle reveal" data-delay="200">
+          Get a peek behind the scenes — process videos, new drops, and before & afters.
+        </p>
+      </div>
+
+      {/*  Instagram grid (using product images as placeholders)  */}
+      <div className="instagram-grid reveal" data-delay="200">
+        <a className="instagram-item" href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" aria-label="Instagram post 1">
+          <img src="assets/images/product_coasters.png" alt="Resin coasters on Instagram" loading="lazy" />
+          <div className="instagram-item-overlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+        </a>
+        <a className="instagram-item" href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" aria-label="Instagram post 2">
+          <img src="assets/images/product_tray.png" alt="Resin tray on Instagram" loading="lazy" />
+          <div className="instagram-item-overlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+        </a>
+        <a className="instagram-item" href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" aria-label="Instagram post 3">
+          <img src="assets/images/product_wall_art.png" alt="Resin frames on Instagram" loading="lazy" />
+          <div className="instagram-item-overlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+        </a>
+        <a className="instagram-item" href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" aria-label="Instagram post 4">
+          <img src="assets/images/product_keychains.png" alt="Resin keychains on Instagram" loading="lazy" />
+          <div className="instagram-item-overlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+        </a>
+        <a className="instagram-item" href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" aria-label="Instagram post 5">
+          <img src="assets/images/artist.png" alt="Artist at work on Instagram" loading="lazy" />
+          <div className="instagram-item-overlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+        </a>
+        <a className="instagram-item" href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" aria-label="Instagram post 6">
+          <img src="assets/images/hero.png" alt="Resin art collection on Instagram" loading="lazy" />
+          <div className="instagram-item-overlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+        </a>
+        <a className="instagram-item" href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" aria-label="Instagram post 7" style={{ display: 'none' }} id="ig-7">
+          <img src="assets/images/product_tray.png" alt="" loading="lazy" />
+          <div className="instagram-item-overlay"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></div>
+        </a>
+        <a className="instagram-item" href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" aria-label="Instagram post 8" style={{ display: 'none' }} id="ig-8">
+          <img src="assets/images/product_wall_art.png" alt="" loading="lazy" />
+          <div className="instagram-item-overlay"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></div>
+        </a>
+      </div>
+
+      <div className="instagram-cta reveal" data-delay="300">
+        <a href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" className="btn btn-instagram btn-lg" id="instagram-follow-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          Follow @resin_.rush
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div className="divider-line"></div>
+
+  {/*  =============================================
+       CONTACT SECTION
+       =============================================  */}
+  <section id="contact">
+    <div className="container">
+      <div className="section-header">
+        <p className="section-label reveal">Get in Touch</p>
+        <h2 className="section-title reveal" data-delay="100">
+          Let's Create Something <span className="text-gradient">Beautiful</span>
+        </h2>
+        <p className="section-subtitle reveal" data-delay="200">
+          Whether you have a question, want to place an order, or just want to say hello — I'd love to hear from you.
+        </p>
+      </div>
+
+      <div className="contact-wrap">
+        {/*  Channels  */}
+        <div>
+          <p className="section-label reveal">Reach Me On</p>
+          <div className="contact-channels">
+            <a href="https://wa.me/918975741553" target="_blank" rel="noopener" className="contact-channel reveal" data-delay="100" id="contact-whatsapp-link">
+              <div className="contact-channel-icon icon-whatsapp">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+              </div>
+              <div className="contact-channel-text">
+                <strong>WhatsApp</strong>
+                <span>+91 89757 41553 — fastest response!</span>
+              </div>
+            </a>
+            <a href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" className="contact-channel reveal" data-delay="200" id="contact-instagram-link">
+              <div className="contact-channel-icon icon-instagram">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              </div>
+              <div className="contact-channel-text">
+                <strong>Instagram DM</strong>
+                <span>@resin_.rush</span>
+              </div>
+            </a>
+            <a href="mailto:jainpurvah123@gmail.com" className="contact-channel reveal" data-delay="300" id="contact-email-link">
+              <div className="contact-channel-icon icon-email">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              </div>
+              <div className="contact-channel-text">
+                <strong>Email</strong>
+                <span>jainpurvah123@gmail.com</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        {/*  Contact Form  */}
+        <div className="reveal-right">
+          <p className="section-label">Send a Message</p>
+          <form className="contact-form" id="contact-form" novalidate>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label" htmlFor="contact-name">Name</label>
+                <input className="form-input" type="text" id="contact-name" name="name" placeholder="Your name" required />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="contact-email">Email</label>
+                <input className="form-input" type="email" id="contact-email" name="email" placeholder="you@example.com" required />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="contact-subject">Subject</label>
+              <input className="form-input" type="text" id="contact-subject" name="subject" placeholder="What's this about?" />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="contact-message">Message</label>
+              <textarea className="form-textarea" id="contact-message" name="message" placeholder="Write your message here..." style={{ minHeight: '150px' }} required></textarea>
+            </div>
+            <button type="submit" className="btn btn-primary btn-lg btn-submit-contact" id="contact-submit-btn">
+              ✦ Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/*  =============================================
+       FOOTER
+       =============================================  */}
+  <footer>
+    <div className="container">
+      <div className="footer-inner">
+        <div className="footer-brand">
+          <div className="footer-brand-name" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <img src="assets/images/logo.jpg" alt="ResinRush Logo" style={{ height: '48px', borderRadius: '6px' }} />
+            ResinRush<span>✦</span>
+          </div>
+          <p className="footer-brand-desc">
+            Handcrafted luxury resin art from the heart of India. 
+            Each piece is unique, made with love, and designed to last a lifetime.
+          </p>
+          <div className="social-links">
+            <a href="https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3" target="_blank" rel="noopener" className="social-link" aria-label="Instagram">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="https://wa.me/918975741553" target="_blank" rel="noopener" className="social-link" aria-label="WhatsApp">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            </a>
+            <a href="mailto:jainpurvah123@gmail.com" className="social-link" aria-label="Email">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <div className="footer-col-title">Explore</div>
+          <ul className="footer-links">
+            <li><a href="#gallery" className="footer-link">All Pieces</a></li>
+            <li><a href="#gallery" className="footer-link">Coasters</a></li>
+            <li><a href="#gallery" className="footer-link">Trays</a></li>
+            <li><a href="#gallery" className="footer-link">Frames</a></li>
+            <li><a href="#gallery" className="footer-link">Keychains</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div className="footer-col-title">Info</div>
+          <ul className="footer-links">
+            <li><a href="#about" className="footer-link">About Purva</a></li>
+            <li><a href="#custom-order" className="footer-link">Custom Orders</a></li>
+            <li><a href="#testimonials" className="footer-link">Reviews</a></li>
+            <li><a href="#faq" className="footer-link">FAQ</a></li>
+            <li><a href="#contact" className="footer-link">Contact</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <div className="footer-col-title">Policies</div>
+          <ul className="footer-links">
+            <li><a href="#faq" className="footer-link">Shipping Policy</a></li>
+            <li><a href="#faq" className="footer-link">Returns &amp; Care</a></li>
+            <li><a href="#faq" className="footer-link">Custom Orders</a></li>
+            <li><a href="#faq" className="footer-link">Bulk &amp; Corporate</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        <p className="footer-copyright">© 2025 ResinRush. All rights reserved.</p>
+        <p className="footer-love">Made with <span>♥</span> &amp; Resin in India</p>
+      </div>
+    </div>
+  </footer>
+
+  {/*  Back to Top  */}
+  <button className="back-to-top" id="back-to-top" aria-label="Back to top">↑</button>
+
+  {/*  Spinner style inline  */}
+  
+
+  {/*  Scripts  */}
+  
+  
+  
+
+    </>
+  );
+}
