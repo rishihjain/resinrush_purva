@@ -18,16 +18,7 @@ const ordersPath = path.join(dataDir, 'orders.json');
 const contactsPath = path.join(dataDir, 'contacts.json');
 const productsPath = path.join(dataDir, 'products.json');
 const uploadsDir = path.join(__dirname, 'uploads');
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 const whatsappNumber = '918975741553';
 const instagramProfile = 'https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3';
 
@@ -163,14 +154,39 @@ app.get('/api/products/:id', async (req, res) => {
 });
 
 // app.post('/api/products', async (req, res) => {
-app.post('/api/products', upload.array('images', 10), async (req, res) => {
 //   const { name, category, desc, details, images } = req.body || {};
-const { name, category, desc, details } = req.body || {};
+//   if (!name || !category || !images || !images.length) {
+//     return res.status(400).json({ error: 'Name, category and images are required.' });
+//   }
 
-const images = req.files?.map(
-  file => `/uploads/${file.filename}`
-) || [];
-  if (!name || !category || !images || !images.length) {
+//   const product = {
+//     id: Date.now(),
+//     name: name.trim(),
+//     category: category.trim(),
+//     desc: (desc || '').trim(),
+//     details: parseDetails(details),
+//     images: images,
+//     createdAt: new Date().toISOString()
+//   };
+
+//   try {
+//     const products = await readData('products');
+//     products.push(product);
+//     await writeData('products', products);
+//     return res.json({ product });
+//   } catch (error) {
+//     return res.status(500).json({ error: error.message || 'Save failed' });
+//   }
+// });
+
+app.post('/api/products', upload.array('images', 10), async (req, res) => {
+  const { name, category, desc, details } = req.body || {};
+  const images = (req.files || []).map((file, i) => {
+    const base64 = file.buffer.toString('base64');
+    return `data:${file.mimetype};base64,${base64}`;
+  });
+
+  if (!name || !category || !images.length) {
     return res.status(400).json({ error: 'Name, category and images are required.' });
   }
 
@@ -180,7 +196,7 @@ const images = req.files?.map(
     category: category.trim(),
     desc: (desc || '').trim(),
     details: parseDetails(details),
-    images: images,
+    images,
     createdAt: new Date().toISOString()
   };
 
@@ -195,13 +211,38 @@ const images = req.files?.map(
 });
 
 // app.put('/api/products/:id', async (req, res) => {
-app.put('/api/products/:id', upload.array('images', 10), async (req, res) => {
-    const images = req.files?.map(
-  file => `/uploads/${file.filename}`
-) || [];
-  const id = parseInt(req.params.id, 10);
-  const { name, category, desc, details, images } = req.body || {};
+//   const id = parseInt(req.params.id, 10);
+//   const { name, category, desc, details, images } = req.body || {};
   
+//   try {
+//     const products = await readData('products');
+//     const index = products.findIndex(item => item.id === id);
+//     if (index === -1) return res.status(404).json({ error: 'Not found' });
+
+//     const product = products[index];
+//     if (name) product.name = name.trim();
+//     if (category) product.category = category.trim();
+//     if (typeof desc !== 'undefined') product.desc = desc.trim();
+//     if (typeof details !== 'undefined') product.details = parseDetails(details);
+//     if (images && images.length) {
+//       product.images = images;
+//     }
+//     products[index] = product;
+//     await writeData('products', products);
+//     return res.json({ product });
+//   } catch (error) {
+//     return res.status(500).json({ error: error.message || 'Update failed' });
+//   }
+// });
+
+app.put('/api/products/:id', upload.array('images', 10), async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const { name, category, desc, details } = req.body || {};
+  const images = (req.files || []).map((file) => {
+    const base64 = file.buffer.toString('base64');
+    return `data:${file.mimetype};base64,${base64}`;
+  });
+
   try {
     const products = await readData('products');
     const index = products.findIndex(item => item.id === id);
@@ -212,9 +253,8 @@ app.put('/api/products/:id', upload.array('images', 10), async (req, res) => {
     if (category) product.category = category.trim();
     if (typeof desc !== 'undefined') product.desc = desc.trim();
     if (typeof details !== 'undefined') product.details = parseDetails(details);
-    if (images && images.length) {
-      product.images = images;
-    }
+    if (images.length) product.images = images;
+
     products[index] = product;
     await writeData('products', products);
     return res.json({ product });
