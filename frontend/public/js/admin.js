@@ -85,12 +85,40 @@ function showMessage(message, isError = false) {
   productMessage.style.color = isError ? '#ff6b6b' : '#7dd3fc';
 }
 
+async function uploadImagesToCloudinary(files) {
+  const preset = 'resin_rush_purva'; // Using hardcoded preset since process.env is not available in static script
+  const cloudName = 'dcumgslye';
+  const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+  const uploadedUrls = [];
+
+  for (const file of files) {
+    // If it's already a URL string (from edit), keep it
+    if (typeof file === 'string') {
+      uploadedUrls.push(file);
+      continue;
+    }
+    const form = new FormData();
+    form.append('file', file);
+    form.append('upload_preset', preset);
+    try {
+      const res = await fetch(url, { method: 'POST', body: form });
+      if (!res.ok) throw new Error('Cloudinary upload failed');
+      const data = await res.json();
+      uploadedUrls.push(data.secure_url || data.url);
+    } catch (err) {
+      console.error(err);
+      throw new Error('Failed to upload image to Cloudinary');
+    }
+  }
+  return uploadedUrls;
+}
+
 productForm.addEventListener('submit', async event => {
   event.preventDefault();
   const name = productForm.name.value?.trim();
   const category = productForm.category.value;
   const desc = productForm.desc.value?.trim();
-  const details = parseDetails(productForm.details.value || '');
+  const details = productForm.details.value || '';
 
   if (!name || !category) {
     showMessage('Please add a valid name and category.', true);
@@ -101,22 +129,34 @@ productForm.addEventListener('submit', async event => {
     selectedFiles = Array.from(imageInput.files);
   }
 
-  const formData = new FormData(productForm);
-  formData.set('name', name);
-  formData.set('category', category);
-  formData.set('desc', desc);
-  formData.set('details', productForm.details.value || '');
-  selectedFiles.forEach(file => formData.append('images', file));
+  showMessage('Uploading images and saving product...');
+  const submitBtn = document.getElementById('save-product-btn');
+  if (submitBtn) submitBtn.disabled = true;
 
-  if (editProductId) {
-    formData.append('id', editProductId);
-    await updateProduct(formData);
-  } else {
-    await createProduct(formData);
+  try {
+    let images = await uploadImagesToCloudinary(selectedFiles);
+
+    const payload = {
+      name,
+      category,
+      desc,
+      details,
+      images
+    };
+
+    if (editProductId) {
+      await updateProduct(payload);
+    } else {
+      await createProduct(payload);
+    }
+  } catch (err) {
+    showMessage(err.message, true);
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 });
 
-var categorySelect = document.getElementById('product-category');
+const categorySelect = document.getElementById('product-category');
 var defaultDescriptions = {
   'coasters': 'Hand-poured coaster set. Size: 10cm diameter. Finish: High gloss.',
   'trays': 'Decorative tray, multiple sizes available. Perfect for serving or display.',
@@ -180,9 +220,13 @@ function renderImagePreview() {
   selectedFiles.forEach((file, index) => {
     const imgEl = document.getElementById(`preview-${index}`);
     if (!imgEl) return;
-    const reader = new FileReader();
-    reader.onload = () => { imgEl.src = reader.result; };
-    reader.readAsDataURL(file);
+    if (typeof file === 'string') {
+      imgEl.src = file; // URL
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => { imgEl.src = reader.result; };
+      reader.readAsDataURL(file);
+    }
   });
 }
 
@@ -229,17 +273,14 @@ productsTableBody.addEventListener('click', async event => {
   }
 });
 
-async function createProduct(formData) {
+async function createProduct(payload) {
   try {
-    const response = await fetch('/api/products', { method: 'POST', body: formData });
-    const contentType = response.headers.get('content-type') || '';
-    let result;
-    if (contentType.includes('application/json')) {
-      result = await response.json();
-    } else {
-      const txt = await response.text();
-      try { result = JSON.parse(txt); } catch (e) { result = { message: txt }; }
-    }
+    const response = await fetch('/api/products', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload) 
+    });
+    const result = await response.json();
     if (!response.ok) throw new Error(result.message || result.error || 'Create failed');
     showMessage('Product created successfully');
     resetForm();
@@ -253,39 +294,41 @@ async function createProduct(formData) {
 async function startEditProduct(productId) {
   try {
     const response = await fetch(`/api/products/${productId}`);
-    const contentType = response.headers.get('content-type') || '';
-    let result;
-    if (contentType.includes('application/json')) {
-      result = await response.json();
-    } else {
-      const txt = await response.text();
-      try { result = JSON.parse(txt); } catch (e) { result = { message: txt }; }
-    }
+    const result = await response.json();
     if (!response.ok) throw new Error(result.message || 'Product not found');
     const product = result.product;
     editProductId = product.id;
     productForm.name.value = product.name || '';
     productForm.category.value = product.category || '';
     productForm.desc.value = product.desc || '';
-    productForm.details.value = (product.details || []).map(item => `${item.key}: ${item.value}`).join('\n');
-    showMessage('Editing product. Upload a new image only if you want to replace the existing one.');
+    
+    // Details handling for old object vs array format
+    if (Array.isArray(product.details)) {
+      productForm.details.value = product.details.map(item => `${item.key}: ${item.value}`).join('\n');
+    } else if (product.details && typeof product.details === 'object') {
+      productForm.details.value = Object.entries(product.details).map(([k,v]) => `${k}: ${v}`).join('\n');
+    } else {
+      productForm.details.value = '';
+    }
+
+    selectedFiles = product.images || [];
+    renderImagePreview();
+
+    showMessage('Editing product. Upload a new image to add or remove existing ones.');
   } catch (error) {
     console.error(error);
     showMessage(error.message || 'Unable to load product for edit', true);
   }
 }
 
-async function updateProduct(formData) {
+async function updateProduct(payload) {
   try {
-    const response = await fetch(`/api/products/${editProductId}`, { method: 'PUT', body: formData });
-    const contentType = response.headers.get('content-type') || '';
-    let result;
-    if (contentType.includes('application/json')) {
-      result = await response.json();
-    } else {
-      const txt = await response.text();
-      try { result = JSON.parse(txt); } catch (e) { result = { message: txt }; }
-    }
+    const response = await fetch(`/api/products/${editProductId}`, { 
+      method: 'PUT', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload) 
+    });
+    const result = await response.json();
     if (!response.ok) throw new Error(result.message || result.error || 'Update failed');
     showMessage('Product updated successfully');
     resetForm();
