@@ -120,13 +120,19 @@ productForm.addEventListener('submit', async event => {
   const desc = productForm.desc.value?.trim();
   const details = productForm.details.value || '';
 
+  const currentFileInput = document.getElementById('product-images');
+  if (!selectedFiles.length && currentFileInput && currentFileInput.files && currentFileInput.files.length) {
+    selectedFiles = Array.from(currentFileInput.files);
+  }
+
   if (!name || !category) {
     showMessage('Please add a valid name and category.', true);
     return;
   }
-
-  if (!selectedFiles.length && imageInput && imageInput.files && imageInput.files.length) {
-    selectedFiles = Array.from(imageInput.files);
+  
+  if (!selectedFiles || !selectedFiles.length) {
+    showMessage('Please select at least one image before saving.', true);
+    return;
   }
 
   showMessage('Uploading images and saving product...');
