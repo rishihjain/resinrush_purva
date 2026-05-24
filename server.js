@@ -32,39 +32,29 @@ if (fsSync.existsSync(reactDistDir)) {
 app.use('/uploads', express.static(uploadsDir));
 
 // --- Database Logic ---
-let db = null;
+let cachedDb = null;
 
-async function initDB() {
-  if (process.env.MONGODB_URI) {
-    try {
-      const client = new MongoClient(process.env.MONGODB_URI);
-      await client.connect();
-      db = client.db('resinrush');
-      console.log('Connected to MongoDB');
-      return;
-    } catch (e) {
-      console.error('MongoDB connection failed:', e);
-    }
-  }
-  
-  // Fallback to local files
-  console.log('Using local JSON storage');
+async function getDb() {
+  if (cachedDb) return cachedDb;
+  if (!process.env.MONGODB_URI) return null;
   try {
-    await fs.mkdir(dataDir, { recursive: true });
-    await fs.mkdir(uploadsDir, { recursive: true });
-    for (const file of [ordersPath, contactsPath, productsPath]) {
-      try { await fs.access(file); } 
-      catch { await fs.writeFile(file, '[]', 'utf8'); }
-    }
-  } catch (err) {
-    console.error('Failed to initialize local data files (expected on Vercel if MONGODB_URI is missing):', err.message);
+    const client = new MongoClient(process.env.MONGODB_URI);
+    await client.connect();
+    cachedDb = client.db('resinrush');
+    console.log('Connected to MongoDB');
+    return cachedDb;
+  } catch (e) {
+    console.error('MongoDB connection failed:', e.message);
+    return null;
   }
 }
 
 async function readData(collectionName) {
+  const db = await getDb();
   if (db) {
     return await db.collection(collectionName).find({}).toArray();
   }
+  // Local fallback
   const file = collectionName === 'products' ? productsPath : collectionName === 'orders' ? ordersPath : contactsPath;
   try {
     const raw = await fs.readFile(file, 'utf8');
@@ -76,6 +66,7 @@ async function readData(collectionName) {
 }
 
 async function writeData(collectionName, data) {
+  const db = await getDb();
   if (db) {
     await db.collection(collectionName).deleteMany({});
     if (data.length > 0) {
@@ -83,8 +74,10 @@ async function writeData(collectionName, data) {
     }
     return;
   }
+  // Local fallback
   const file = collectionName === 'products' ? productsPath : collectionName === 'orders' ? ordersPath : contactsPath;
   try {
+    await fs.mkdir(dataDir, { recursive: true }).catch(() => {});
     await fs.writeFile(file, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
     throw new Error('Database not configured. Please add MONGODB_URI in Vercel.');
@@ -158,7 +151,6 @@ app.get('/api/products/:id', async (req, res) => {
   }
 });
 
-// Products are now submitted as JSON payloads with Cloudinary URLs
 app.post('/api/products', async (req, res) => {
   const { name, category, desc, details, images } = req.body || {};
   if (!name || !category || !images || !images.length) {
@@ -257,6 +249,9 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-initDB().then(() => {
+// Export app for Vercel, or listen locally if not in Vercel
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
   app.listen(PORT, () => console.log(`Running on http://localhost:${PORT}`));
-}).catch(console.error);
+}
