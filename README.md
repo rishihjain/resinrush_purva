@@ -1,35 +1,56 @@
-# ResinRush Backend
+# ResinRush Project
 
-This project now includes a lightweight Node.js backend for ResinRush.
+This repository contains a Node backend plus a React frontend for ResinRush.
 
-## What it provides
+## Project structure
 
-- Serves the static website from the project root
-- Stores custom order enquiries in `data/orders.json`
-- Stores contact form submissions in `data/contacts.json`
-- Exposes API endpoints:
-  - `POST /api/orders` — save an order enquiry and return WhatsApp/Instagram links
-  - `POST /api/contact` — save a contact message
-  - `GET /api/orders` — read stored orders
-  - `GET /api/contacts` — read stored contacts
+- `/server.js` — backend API and server entrypoint
+- `/package.json` — backend dependencies and scripts
+- `/data/` — local JSON storage fallback for orders, contacts, and products
+- `/uploads/` — uploaded files
+- `/frontend/` — React app source and build output
+  - `/frontend/src/` — React source code
+  - `/frontend/public/` — public static assets for the React app
+  - `/frontend/dist/` — built production output served by Vercel
+- `/legacy/` — old static site files moved here and no longer used by the active app
+
+## How it works
+
+- `frontend/dist/` is the deployed site content
+- The Express server serves API routes under `/api/*`
+- The React app includes the public store and the admin page at `/admin`
 
 ## Run locally
 
-1. Install dependencies:
+1. Install backend dependencies:
 
 ```bash
 npm install
 ```
 
-2. Start the server:
+2. Install frontend dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+3. Build the frontend:
+
+```bash
+npm run build
+```
+
+4. Start the backend from the repo root:
 
 ```bash
 npm start
 ```
 
-3. Open `http://localhost:3000`
+5. Open `http://localhost:3000`
 
 ## Notes
 
-- The custom order form now only asks for name, phone, category, and additional details.
-- Enquiries are saved on the backend and then redirected to WhatsApp or Instagram.
+- Do not edit files inside `/frontend/dist/`; they are generated from `/frontend/src/`.
+- The old root site files are kept in `/legacy/` for reference only.
+- The admin interface is available at `/admin` in the React app.

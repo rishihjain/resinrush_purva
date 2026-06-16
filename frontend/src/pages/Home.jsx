@@ -223,11 +223,11 @@ export default function Home() {
       {/*  Category Filters  */}
       <div className="filter-tabs reveal" role="tablist" aria-label="Product categories">
         <button className="filter-tab active" data-filter="all" role="tab" aria-selected="true" id="filter-all">All Pieces</button>
+        <button className="filter-tab" data-filter="clocks" role="tab" aria-selected="false" id="filter-clocks">Clocks</button>
         <button className="filter-tab" data-filter="coasters" role="tab" aria-selected="false" id="filter-coasters">Coasters</button>
         <button className="filter-tab" data-filter="trays" role="tab" aria-selected="false" id="filter-trays">Trays</button>
         <button className="filter-tab" data-filter="wall-art" role="tab" aria-selected="false" id="filter-wall-art">Frames</button>
         <button className="filter-tab" data-filter="keychains" role="tab" aria-selected="false" id="filter-keychains">Keychains</button>
-        <button className="filter-tab" data-filter="jewelry" role="tab" aria-selected="false" id="filter-jewelry">Jewelery</button>
         <button className="filter-tab" data-filter="custom" role="tab" aria-selected="false" id="filter-custom">Custom Pieces</button>
       </div>
 
@@ -325,13 +325,12 @@ export default function Home() {
               <label className="form-label" htmlFor="order-type">Category *</label>
               <select className="form-select" id="order-type" name="type" required>
                 <option value="" disabled selected>Select a category</option>
+                <option value="Clocks">Clocks</option>
                 <option value="Coasters">Coasters</option>
                 <option value="Trays">Trays</option>
                 <option value="Frames">Frames</option>
                 <option value="Keychains">Keychains</option>
-                <option value="Jewelry">Jewelry</option>
-                <option value="Gift Set">Gift Set</option>
-                <option value="Other">Other</option>
+                <option value="Custom Pieces">Custom Pieces</option>
               </select>
             </div>
             <div className="form-group">

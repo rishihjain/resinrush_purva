@@ -39,11 +39,11 @@ export default function Admin() {
               <label htmlFor="product-category">Category *</label>
               <select id="product-category" name="category" defaultValue="" required>
                 <option value="" disabled>Select category</option>
+                <option value="clocks">Clocks</option>
                 <option value="coasters">Coasters</option>
                 <option value="trays">Trays</option>
                 <option value="wall-art">Frames</option>
                 <option value="keychains">Keychains</option>
-                <option value="jewelry">Jewelry</option>
                 <option value="custom">Custom Pieces</option>
               </select>
             </div>

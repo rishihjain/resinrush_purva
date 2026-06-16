@@ -328,13 +328,11 @@ app.get('/api/contacts', async (req, res) => {
   }
 });
 
-// Admin fallback
-app.get('/admin.html', (req, res) => {
-  res.sendFile(path.join(rootDir, 'admin.html'));
-});
-
 app.get('*', (req, res) => {
-  res.sendFile(path.join(rootDir, 'index.html'));
+  const indexPath = fsSync.existsSync(path.join(reactDistDir, 'index.html'))
+    ? path.join(reactDistDir, 'index.html')
+    : path.join(rootDir, 'index.html');
+  res.sendFile(indexPath);
 });
 
 app.use((err, req, res, next) => {
