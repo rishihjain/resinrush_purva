@@ -26,6 +26,17 @@ function runGalleryInit() {
   initFilters();
   initModal();
   loadProducts();
+
+  // Check for product URL parameter and auto-open modal
+  setTimeout(() => {
+    const url = new URL(window.location);
+    const productId = url.searchParams.get('product');
+    if (productId) {
+      const id = parseInt(productId, 10);
+      const product = PRODUCTS.find(p => p.id === id);
+      if (product) openModal(id);
+    }
+  }, 500);
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', runGalleryInit);
