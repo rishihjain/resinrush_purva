@@ -6,6 +6,8 @@ const fs = require('fs/promises');
 const fsSync = require('fs');
 const { MongoClient } = require('mongodb');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +23,23 @@ const uploadsDir = path.join(__dirname, 'uploads');
 const upload = multer({ storage: multer.memoryStorage() });
 const whatsappNumber = '918975741553';
 const instagramProfile = 'https://www.instagram.com/resin_.rush?igsh=Z2l1bWsyeTV2azZ3';
+
+// Configure Cloudinary from env
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+function uploadBufferToCloudinary(buffer, options = {}) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+      if (error) return reject(error);
+      resolve(result);
+    });
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+}
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -181,31 +200,39 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', upload.array('images', 10), async (req, res) => {
   const { name, category, desc, details } = req.body || {};
-  const images = (req.files || []).map((file, i) => {
-    const base64 = file.buffer.toString('base64');
-    return `data:${file.mimetype};base64,${base64}`;
-  });
+  const files = req.files || [];
 
-  if (!name || !category || !images.length) {
-    return res.status(400).json({ error: 'Name, category and images are required.' });
+  if (!name || !category) {
+    return res.status(400).json({ error: 'Name and category are required.' });
   }
 
-  const product = {
-    id: Date.now(),
-    name: name.trim(),
-    category: category.trim(),
-    desc: (desc || '').trim(),
-    details: parseDetails(details),
-    images,
-    createdAt: new Date().toISOString()
-  };
-
   try {
+    const images = [];
+    for (const file of files) {
+      const result = await uploadBufferToCloudinary(file.buffer, { folder: 'resinrush' });
+      images.push(result.secure_url || result.url);
+    }
+
+    if (!images.length) {
+      return res.status(400).json({ error: 'At least one image is required.' });
+    }
+
+    const product = {
+      id: Date.now(),
+      name: name.trim(),
+      category: category.trim(),
+      desc: (desc || '').trim(),
+      details: parseDetails(details),
+      images,
+      createdAt: new Date().toISOString()
+    };
+
     const products = await readData('products');
     products.push(product);
     await writeData('products', products);
     return res.json({ product });
   } catch (error) {
+    console.error('Product save failed:', error);
     return res.status(500).json({ error: error.message || 'Save failed' });
   }
 });
@@ -238,10 +265,7 @@ app.post('/api/products', upload.array('images', 10), async (req, res) => {
 app.put('/api/products/:id', upload.array('images', 10), async (req, res) => {
   const id = parseInt(req.params.id, 10);
   const { name, category, desc, details } = req.body || {};
-  const images = (req.files || []).map((file) => {
-    const base64 = file.buffer.toString('base64');
-    return `data:${file.mimetype};base64,${base64}`;
-  });
+  const files = req.files || [];
 
   try {
     const products = await readData('products');
@@ -253,12 +277,21 @@ app.put('/api/products/:id', upload.array('images', 10), async (req, res) => {
     if (category) product.category = category.trim();
     if (typeof desc !== 'undefined') product.desc = desc.trim();
     if (typeof details !== 'undefined') product.details = parseDetails(details);
-    if (images.length) product.images = images;
+
+    if (files.length) {
+      const images = [];
+      for (const file of files) {
+        const result = await uploadBufferToCloudinary(file.buffer, { folder: 'resinrush' });
+        images.push(result.secure_url || result.url);
+      }
+      if (images.length) product.images = images;
+    }
 
     products[index] = product;
     await writeData('products', products);
     return res.json({ product });
   } catch (error) {
+    console.error('Product update failed:', error);
     return res.status(500).json({ error: error.message || 'Update failed' });
   }
 });
