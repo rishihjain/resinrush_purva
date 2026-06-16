@@ -118,11 +118,11 @@ productForm.addEventListener('submit', async event => {
 
 const categorySelect = document.getElementById('product-category');
 const defaultDescriptions = {
+  'clocks': 'Handcrafted resin clocks. Unique designs with reliable mechanisms.',
   'coasters': 'Hand-poured coaster set. Size: 10cm diameter. Finish: High gloss.',
   'trays': 'Decorative tray, multiple sizes available. Perfect for serving or display.',
   'wall-art': 'Framed resin wall piece, ready to hang. Size varies by design.',
   'keychains': 'Lightweight resin keychains. Durable finish and customisable.',
-  'jewelry': 'Handmade resin jewellery pieces. Hypoallergenic findings.',
   'custom': 'Custom piece — provide details about size, colours and style you want.'
 };
 

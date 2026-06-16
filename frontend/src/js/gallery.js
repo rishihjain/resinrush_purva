@@ -107,11 +107,11 @@ function renderGallery(filter) {
 
 function formatCategory(cat) {
   const map = {
+    'clocks': 'Clocks',
     'coasters': 'Coasters',
     'trays': 'Trays',
     'wall-art': 'Frames',
     'keychains': 'Keychains',
-    'jewelry': 'Jewelry',
     'custom': 'Custom Piece'
   };
   return map[cat] || cat;
